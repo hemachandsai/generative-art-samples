@@ -11,9 +11,8 @@ let currentIndex = 0;
 let downloaded = new Set();
 let suffix = "";
 let files;
-
+let failedFiles = "";
 function main() {
-    // let links="";
     // document.querySelectorAll(".post-container li.post.photo").forEach(li => links  += li.getAttribute("data-image-retina") + '\n')
     
     // let links="";
@@ -21,7 +20,11 @@ function main() {
         
     // let links="";
     // document.querySelectorAll("section.posts img").forEach(img => links  += img.getAttribute("src") + '\n');
-    console.time("timeTaken");
+    // let links="";
+
+    // document.querySelectorAll("img.thumb.ads_popup").forEach(img => links += window.location.origin + img.getAttribute("src") + '\n')
+    // console.log(links);
+    // console.time("timeTaken");
     validateRequest();
     readLinks();
     createRequiredDirs();
@@ -77,6 +80,7 @@ function recursiveDownloadFiles(start, end) {
         console.log("Exiting as no link data found under the file...");
         return;
     }
+        i = start
     for (let i = start; i < end; i++) {
         let file = links[i].split("/");
         let fileName = file[file.length - 1].replace("gifv", "gif");
@@ -106,9 +110,14 @@ function recursiveDownloadFiles(start, end) {
         }).then((res, err) => {
             if (err) {
                 console.log(`Error while trying to download file with link ${links[i]}:\n ${err}`)
+                failedFiles += `${links[i]}\n` 
+                recursiveDownloadFiles(currentIndex, currentIndex + 1);
+
             } else {
                 if (currentIndex !== links.length) {
                     recursiveDownloadFiles(currentIndex, currentIndex + 1);
+                } else {
+                    console.log(failedFiles);
                 }
                 if (res.statusCode === 200) {
                     fs.writeFile(path.join(destinationPath, fileName), res.body, {
